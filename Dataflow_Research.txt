@@ -1,0 +1,27 @@
+Dataflow
+- PCollection is what the ParDo is applied to
+    - foreach ‘element’ in PCollection we apply a function
+- ParDo is the ‘map’ portion of MapReduce
+- a DoFn is the callback used by the ParDo that actually does the computation or transformation
+    - the input must not be modified by the DoFn
+    - the output must not be modified by the DoFn
+    - essentially it is a linear process, once we apply our ParDo and DoFn, we can only apply another
+    - 
+- .named applies a name to the transform so it can be visualized in the dashboard
+    - not inherently necessary but useful for debugging
+- PCollectionView - way to view a collection as a single entity so that it can be passed in as a side input to a ParDo
+    - SingletonView, asList, asMap, asMultiMap
+- Combine is equivalent to reduce in MapReduce
+    - 
+- Side output are also possible with TupleTagLists
+    - specified beforehand
+    - returned in the result of the ParDo as a TupleTagList along with the main PCollection in the output PCollectionTuple
+- GrouByKey is analogous to the Shuffle in a MapReduce
+    - can easily aggregate data that has something in common
+    - [can be used to filter all the routes down to a collection of start stations connected to all the end stations]
+        - aka. multimap to unimap
+- Read in multiple supported formats (transforms written into the SDK)
+    - can occur at any point in the pipeline but usually at the beginning
+    - read from any location on your google cloud storage (see bookshelf-demo-app for creating buckets/accessing dbs (Mongo specific)
+    - same functionality as write (both can occur at any time in the pipeline
+    - called with .apply
