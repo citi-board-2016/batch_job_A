@@ -1,0 +1,92 @@
+//Commonly used routes batch job
+
+//upon return of each board, save its start and end points as a route
+//read through all routes for a specified time period
+//report on routes:
+//	- for each start station
+//	- for each end station
+//	- top 10 routes overall
+//	- routes for each user
+
+
+//methods
+//for user-specific jobs:
+//	- findOne to get user's routes from DB
+//once routes have been retrieved
+// MapReduce function to sort and count routes
+// 	- this will save the results
+//	- and then output them to the html served to the page where the graph will be constructed
+
+
+For each start station:
+
+
+/********* NOT RIGHT
+reduce first:
+	filter by date range
+then call the following map reduce:
+map:
+	map each start station to an end station
+	we end up with a list of just start stations to end stations
+reduce: 
+	for each start station, the keep track of count of trips made to each end station
+	so for each start to end station, we have a number of trips made on that route
+
+For each end station:
+— do the same as the above but use end stations
+
+Top 10 overall
+map:
+	
+reduce:
+	reduce down to number of trips per route
+NOT RIGHT **********/
+
+
+
+For each start/end station:
+
+filter first based on start/end station (.findAll)
+>> array of all routes with a specified start station
+map:
+>> get an array of just the end stations
+reduce:
+>> list of key, value pairs with end stations and number of times used.
+this gets returned to the main process and the main process creates a graph since we know that it started at a specific start station, we can just have a histogram of all the end stations and the number of times people went there from that start point
+
+—> secondary function, return top 10 end station/count pairs to the database and store as objects {start_station: “”, end_station: “”, count: “”}
+	we do this for each start/end station and save the data in the db
+	then when the top 10 overall job is called, we just have to check to make sure that each station has been computed and sort the list of objects based on the count quality and subsequently return the top 10
+
+—> may have to add this data to the database so that we can determine top 10 (this will likely be more efficient so that it doesn’t have to be recalculated each time)
+
+
+
+For each user:
+
+map:
+	create a hash of the start and end ids for each route
+	EX:
+		start_id: 45678
+		end_id: 12345
+		hash: 4567812345
+
+reduce:
+	count the number of duplicates for each hash and save it:
+		hash: count
+
+this can be reconstructed on output, parse the start and end ids, and return the names and count.
+	start id -> name_start
+	end id -> name_end
+	return: [name_start, name_end, count]
+
+this will then be visualized
+
+
+
+	
+
+
+
+
+
