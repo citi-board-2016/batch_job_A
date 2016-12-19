@@ -31,12 +31,14 @@ import java.util.Map;
 
 
 public class StartStation{
+	
 	public static class FormatAsTextFn extends DoFn<KV<String, Long>, String> {
 	    @Override
 	    public void processElement(ProcessContext c) {
 	      c.output(c.element().getKey() + ": " + c.element().getValue());
 	    }
 	  }
+
 	
 
 	public static interface BatchOptions extends PipelineOptions {
@@ -99,15 +101,33 @@ public class StartStation{
 		//input txt will have a single line in the form:
 		//"start station id","start time","end time"
 		//separated only by commas
-		PCollection<String> lines = p.apply(TextIO.Read.from("gs://______filterdata.txt__"));
-		PCollection<Input> input = lines.apply(MapElements.via((String line) -> {
-		    
-		    String[] parts = line.split(",");
-		    in.startStation = parts[0];
-		    in.timeStart = Integer.parseInt(parts[1]);
-		    in.timeEnd = Integer.parseInt(parts[2]);
-		    return in;
-		}).withOutputType(new TypeDescriptor<Input>() {}));
+		
+		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://______filterdata.txt__"));
+		
+		PCollection<Input> input = lines.apply(ParDo.of(new DoFn<String, Input>(){
+			    private final Aggregator<Long, Long> emptyLines =
+			        createAggregator("emptyLines", new Sum.SumLongFn());
+
+			    @Override
+			    public void processElement(ProcessContext c) {
+			      if (c.element().trim().isEmpty()) {
+			        emptyLines.addValue(1L);
+			      }
+
+			      // Split the line into words.
+			      String[] words = c.element().split("[^a-zA-Z']+");
+			      
+				    in.startStation = words[0];
+				    in.timeStart = Integer.parseInt(words[1]);
+				    in.timeEnd = Integer.parseInt(words[2]);
+				    c.output(in);
+			      
+
+			      
+			    }
+			  }));
+				
+				
 
 		//side inputs
 		//final PCollectionView<Input> userInputView = 
