@@ -14,9 +14,13 @@ import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.SimpleFunction;
 import com.google.cloud.dataflow.sdk.transforms.Sum;
+import com.google.cloud.dataflow.sdk.transforms.DoFn.ProcessContext;
 import com.google.cloud.dataflow.sdk.util.gcsfs.GcsPath;
 import com.google.cloud.dataflow.sdk.values.KV;
 import com.google.cloud.dataflow.sdk.values.PCollection;
+import com.google.cloud.dataflow.sdk.values.PCollectionView;
+import com.google.cloud.dataflow.sdk.values.TypeDescriptor;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,22 +31,13 @@ import java.util.Map;
 
 
 public class StartStation{
-
-	static class FilterTimeStation extends DoFn<PCollection<Object>, PCollection<Object>> {
-		public void processElement(ProcessContext c) {
-			Object curr = c.element();
-			// In our DoFn, access the side input.
-			int start = c.sideInput(timeRangeStartView).timeStart;
-			int end = c.sideInput(timeRangeEndView).timeEnd;
-			String station = c.sideInput(stationView).startStation;
-			if (start <= curr.startTime && curr.startTime <= end) {
-				if(curr.startStation == station){
-					c.output(curr);
-				}
-			}
-		}
-
-	}
+	public static class FormatAsTextFn extends DoFn<KV<String, Long>, String> {
+	    @Override
+	    public void processElement(ProcessContext c) {
+	      c.output(c.element().getKey() + ": " + c.element().getValue());
+	    }
+	  }
+	
 
 	public static interface BatchOptions extends PipelineOptions {
 	    @Description("Path of the file to read from")
@@ -79,8 +74,8 @@ public class StartStation{
 
 		
 
-		WordCountOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
-     	 .as(WordCountOptions.class);
+		BatchOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
+     	 .as(BatchOptions.class);
 		// Create a pipeline parameterized by commandline flags.
 		Pipeline p = Pipeline.create(options);
 
@@ -100,26 +95,28 @@ public class StartStation{
 		    public int timeStart;
 		    public int timeEnd;
 		}
-
+		Input in = new Input();
 		//input txt will have a single line in the form:
 		//"start station id","start time","end time"
 		//separated only by commas
 		PCollection<String> lines = p.apply(TextIO.Read.from("gs://______filterdata.txt__"));
 		PCollection<Input> input = lines.apply(MapElements.via((String line) -> {
-		    Input input = new Input();
+		    
 		    String[] parts = line.split(",");
-		    input.startStation = parts[0];
-		    input.timeStart = Integer.parseInt(parts[1]);
-		    input.timeEnd = Integer.parseInt(parts[2]);
-		    return input;
-		}).withOutputType(new TypeDescriptor<Input>() {});)
+		    in.startStation = parts[0];
+		    in.timeStart = Integer.parseInt(parts[1]);
+		    in.timeEnd = Integer.parseInt(parts[2]);
+		    return in;
+		}).withOutputType(new TypeDescriptor<Input>() {}));
 
 		//side inputs
-		final PCollectionView<Input> userInputView = input.asSingletonView();
+		//final PCollectionView<Input> userInputView = 
 		
 
-		p.apply(TextIO.Read.from("gs://___INPUT_FILE___.csv"));
-		p.apply(MapElements.via((String line) -> {
+		PCollection<String> data = p.apply(TextIO.Read.from("gs://___INPUT_FILE___.csv"));
+	
+			    
+		PCollection<Route> routes = data.apply(MapElements.via((String line) -> {
 		    Route route = new Route();
 		    String[] parts = line.split(",");
 		    route.startStation = parts[3];
@@ -134,7 +131,7 @@ public class StartStation{
 		    route.endStationName = parts[8];
 		    
 		    return route;
-		}).withOutputType(new TypeDescriptor<Route>() {});)
+		}).withOutputType(new TypeDescriptor<Route>() {}));
 
 
 		/////////////////////////////			/////
@@ -146,13 +143,26 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
-		p.apply(ParDo.withSideInputs(userInputView).of(new FilterTimeStation()));
+		PCollection<Route> filtered = routes.apply(ParDo.of(new DoFn<Route, Route>(){
+			public void processElement(ProcessContext c) {
+				Route curr = c.element();
+				// In our DoFn, access the side input.
+				int start = in.timeStart;
+				int end = in.timeEnd;
+				String station = in.startStation;
+				if (start <= curr.startTime && curr.startTime <= end) {
+					if(curr.startStation == station){
+						c.output(curr);
+					}
+				}
+			}
+		}));
 
 		// reduce to just a list of end stations
 			//returns a PCollection of just end station ids
-		p.apply(ParDo.of(new DoFn<PCollection<String>, PCollection<Object>>() {
+		PCollection<String> endStations = filtered.apply(ParDo.of(new DoFn<Route, String>() {
 			public void processElement(ProcessContext c) {
-				Object curr = c.element();
+				Route curr = c.element();
 				
 				c.output(curr.endStation);
 		}}));
@@ -161,7 +171,7 @@ public class StartStation{
 			// key: end station
 			// value: count
 		//returns PCollection<KV<String, Long>>
-		p.apply(Count.<String>perElement());
+		PCollection<KV<String, Long>> counts = endStations.apply(Count.<String>perElement());
 
 		// sort the key/value collection ?
 		
@@ -172,7 +182,8 @@ public class StartStation{
 
 
 		//put in output file
-		p.apply(TextIO.Write.to("gs://____output_file______"));   // Write output.
+		PCollection<String> out = counts.apply(ParDo.of(new FormatAsTextFn()));
+		out.apply(TextIO.Write.to("gs://____output_file______"));   // Write output.
 
 		// Run the pipeline.
 		p.run();
