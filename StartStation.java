@@ -212,7 +212,7 @@ public class StartStation{
 		    
 		    
             String[] commas = parts[0].split("\"");
-            String datetimehash = "";
+            String datetimehash = "0";
             
             if(!isNumeric(commas[1])){
             	
