@@ -123,7 +123,7 @@ public class StartStation{
 	static class Route {
 		@Nullable String startStation;
 		@Nullable String endStation;
-		@Nullable Integer startTime;
+		@Nullable Double startTime;
 		@Nullable String startStationName;
 		@Nullable String endStationName;
 		
@@ -182,7 +182,7 @@ public class StartStation{
 			      }
 
 			      // Split the line into words.
-			      String[] words = c.element().split("[^a-zA-Z']+");
+			      String[] words = c.element().split(",");
 			      
 				    in.startStation = words[0];
 				    in.timeStart = Integer.parseInt(words[1]);
@@ -227,14 +227,14 @@ public class StartStation{
         	    	month = "0" + month;
         	    }
         	    String[] time = datetime[1].split(":");
-        	    datetimehash = "" + date[2] + month + date[1] + time[0] + time[1] + time[2];
+        	    datetimehash = date[2] + month + date[1] + time[0] + time[1] + time[2];
 
             }
 		    
 		    
 		    
 		    
-		    route.startTime = Integer.parseInt(datetimehash);
+		    route.startTime = Double.parseDouble(datetimehash);
 		    route.startStationName = parts[4];
 		    route.endStationName = parts[8];
 		    
