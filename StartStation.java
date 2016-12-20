@@ -28,6 +28,10 @@ import com.google.cloud.dataflow.sdk.coders.DefaultCoder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 import org.apache.avro.reflect.Nullable;
 
@@ -39,13 +43,28 @@ import org.apache.avro.reflect.Nullable;
 
 public class StartStation{
 	
+	public static boolean isNumeric(String str)  
+	{  
+	  try  
+	  {  
+	    double d = Double.parseDouble(str);  
+	  }  
+	  catch(NumberFormatException nfe)  
+	  {  
+	    return false;  
+	  }  
+	  return true;  
+	}
+	
 	public static class FormatAsTextFn extends DoFn<KV<String, Long>, String> {
 	    @Override
 	    public void processElement(ProcessContext c) {
 	      c.output(c.element().getKey() + ": " + c.element().getValue());
 	    }
 	  }
+	
 	static Input in;
+	
 	public static class ParseInputFn extends DoFn<String, Input> {
 		
 		private final Aggregator<Long, Long> emptyLines =
@@ -189,11 +208,32 @@ public class StartStation{
 		    String[] parts = line.split(",");
 		    route.startStation = parts[3];
 		    route.endStation = parts[7];
-		    String[] datetime = parts[1].split(" ");
-		    String[] date = datetime[0].split("/");
-		    String[] time = datetime[1].split(":");
-		    //creates a hash of the time (ex: 8/1/2016 00:06:11 will be: 201681000611)
-		    String datetimehash = "" + date[2] + date[0] + date[1] + time[0] + time[1] + time[2];
+		    
+		    
+		    
+            String[] commas = parts[0].split("\"");
+            String datetimehash;
+            
+            if(!isNumeric(commas[1])){
+            	
+            }
+            else{	
+                
+        	    String[] datetime = parts[1].split("\"");
+        	    datetime = datetime[1].split(" ");  	    
+        	    String[] date = datetime[0].split("/");
+        	    String month = date[0];
+        	    if(!month.equals("10") || !month.equals("11") || !month.equals("12")){
+        	    	month = "0" + month;
+        	    }
+        	    String[] time = datetime[1].split(":");
+        	    datetimehash = "" + date[2] + month + date[1] + time[0] + time[1] + time[2];
+
+            }
+		    
+		    
+		    
+		    
 		    route.startTime = Integer.parseInt(datetimehash);
 		    route.startStationName = parts[4];
 		    route.endStationName = parts[8];
