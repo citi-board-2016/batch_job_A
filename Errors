@@ -1,0 +1,98 @@
+Dec 19, 2016 6:57:15 PM com.google.cloud.dataflow.sdk.runners.DataflowPipelineRunner fromOptions
+INFO: PipelineOptions.filesToStage was not specified. Defaulting to files from the classpath: will stage 65 files. Enable logging at DEBUG level to see which files will be staged.
+Dec 19, 2016 6:57:16 PM com.google.cloud.dataflow.sdk.Pipeline applyInternal
+WARNING: Transform AnonymousParDo2 does not have a stable unique name. This will prevent updating of pipelines.
+Dec 19, 2016 6:57:17 PM com.google.cloud.dataflow.sdk.runners.DataflowPipelineRunner run
+INFO: Executing pipeline on the Dataflow Service, which will have billing implications related to Google Compute Engine usage and other Google Cloud Services.
+Dec 19, 2016 6:57:17 PM com.google.cloud.dataflow.sdk.util.PackageUtil stageClasspathElements
+INFO: Uploading 65 files from PipelineOptions.filesToStage to staging location to prepare for execution.
+Dec 19, 2016 6:58:09 PM com.google.cloud.dataflow.sdk.util.PackageUtil stageClasspathElements
+INFO: Uploading PipelineOptions.filesToStage complete: 65 files newly uploaded, 0 files cached
+Dataflow SDK version: 1.8.0
+Dec 19, 2016 6:58:14 PM com.google.cloud.dataflow.sdk.runners.DataflowPipelineRunner run
+INFO: To access the Dataflow monitoring console, please navigate to https://console.developers.google.com/project/sage-extension-144601/dataflow/job/2016-12-19_15_58_13-11223015565032425332
+Submitted job: 2016-12-19_15_58_13-11223015565032425332
+Dec 19, 2016 6:58:14 PM com.google.cloud.dataflow.sdk.runners.DataflowPipelineRunner run
+INFO: To cancel the job using the 'gcloud' tool, run:
+> gcloud alpha dataflow jobs --project=sage-extension-144601 cancel 2016-12-19_15_58_13-11223015565032425332
+2016-12-19T23:58:13.296Z: Detail:  (9bc02931be700bc0): Autoscaling is enabled for job 2016-12-19_15_58_13-11223015565032425332. The number of workers will be between 1 and 15.
+2016-12-19T23:58:13.296Z: Detail:  (9bc02931be700cd3): Autoscaling was automatically enabled for job 2016-12-19_15_58_13-11223015565032425332.
+2016-12-19T23:58:18.245Z: Detail:  (a80818d1d11f850a): Checking required Cloud APIs are enabled.
+2016-12-19T23:58:18.664Z: Detail:  (a80818d1d11f845f): Expanding GroupByKey operations into optimizable parts.
+2016-12-19T23:58:18.668Z: Detail:  (a80818d1d11f889d): Lifting ValueCombiningMappingFns into MergeBucketsMappingFns
+2016-12-19T23:58:18.673Z: Detail:  (a80818d1d11f8119): Annotating graph with Autotuner information.
+2016-12-19T23:58:18.687Z: Detail:  (a80818d1d11f83b4): Fusing adjacent ParDo, Read, Write, and Flatten operations
+2016-12-19T23:58:18.690Z: Detail:  (a80818d1d11f87f2): Fusing consumer MapElements/Map into TextIO.Read/Read
+2016-12-19T23:58:18.693Z: Detail:  (a80818d1d11f8c30): Fusing consumer AnonymousParDo2 into AnonymousParDo
+2016-12-19T23:58:18.698Z: Detail:  (a80818d1d11f806e): Fusing consumer Count.PerElement/Count.PerKey/GroupByKey/Reify into Count.PerElement/Count.PerKey/GroupByKey+Count.PerElement/Count.PerKey/Combine.GroupedValues/Partial
+2016-12-19T23:58:18.704Z: Detail:  (a80818d1d11f84ac): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/Window.Into() into ParDo(FormatAsText)
+2016-12-19T23:58:18.719Z: Detail:  (a80818d1d11f8d28): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsIterable/DataflowPipelineRunner.BatchViewAsIterable/ParDo(ToIsmRecordForGlobalWindow) into TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/WriteBundles
+2016-12-19T23:58:18.722Z: Detail:  (a80818d1d11f8166): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/WriteBundles into TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/Window.Into()
+2016-12-19T23:58:18.725Z: Detail:  (a80818d1d11f85a4): Fusing consumer AnonymousParDo into MapElements/Map
+2016-12-19T23:58:18.728Z: Detail:  (a80818d1d11f89e2): Fusing consumer Count.PerElement/Count.PerKey/GroupByKey+Count.PerElement/Count.PerKey/Combine.GroupedValues/Partial into Count.PerElement/Init
+2016-12-19T23:58:18.731Z: Detail:  (a80818d1d11f8e20): Fusing consumer ParDo(FormatAsText) into Count.PerElement/Count.PerKey/Combine.GroupedValues/Extract
+2016-12-19T23:58:18.734Z: Detail:  (a80818d1d11f825e): Fusing consumer Count.PerElement/Count.PerKey/Combine.GroupedValues/Extract into Count.PerElement/Count.PerKey/Combine.GroupedValues
+2016-12-19T23:58:18.738Z: Detail:  (a80818d1d11f869c): Fusing consumer Count.PerElement/Init into AnonymousParDo2
+2016-12-19T23:58:18.741Z: Detail:  (a80818d1d11f8ada): Fusing consumer Count.PerElement/Count.PerKey/Combine.GroupedValues into Count.PerElement/Count.PerKey/GroupByKey/Read
+2016-12-19T23:58:18.743Z: Detail:  (a80818d1d11f8f18): Fusing consumer Count.PerElement/Count.PerKey/GroupByKey/Write into Count.PerElement/Count.PerKey/GroupByKey/Reify
+2016-12-19T23:58:18.748Z: Detail:  (a80818d1d11f8356): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/ParDo(UseWindowHashAsKeyAndWindowAsSortKey) into TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/Initialize
+2016-12-19T23:58:18.754Z: Detail:  (a80818d1d11f8bd2): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Write into TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/ParDo(UseWindowHashAsKeyAndWindowAsSortKey)
+2016-12-19T23:58:18.762Z: Detail:  (a80818d1d11f844e): Fusing consumer TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/ParDo(IsmRecordForSingularValuePerWindow) into TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Read
+2016-12-19T23:58:18.768Z: Detail:  (a80818d1d11f8cca): Fusing consumer ParseInput into ReadLines/Read
+2016-12-19T23:58:18.862Z: Detail:  (a80818d1d11f8d06): Adding StepResource setup and teardown to workflow graph.
+2016-12-19T23:58:19.030Z: Basic:  S12: (a04d2b32d805f514): Executing operation ReadLines/Read+ParseInput
+2016-12-19T23:58:19.030Z: Basic:  S06: (9896410178b00891): Executing operation Count.PerElement/Count.PerKey/GroupByKey/Create
+2016-12-19T23:58:19.054Z: Basic:  S01: (6d8fbaf193183cb7): Executing operation TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Create
+2016-12-19T23:58:19.240Z: Basic:  (e9e9be6589c04bdc): Starting 1 workers...
+2016-12-19T23:58:19.274Z: Basic:  S02: (17cc84a5db88b0b1): Executing operation TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/Initialize+TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/ParDo(UseWindowHashAsKeyAndWindowAsSortKey)+TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Write
+2016-12-19T23:58:19.297Z: Basic:  S07: (3bd8942ee497f17e): Executing operation TextIO.Read/Read+MapElements/Map+AnonymousParDo+AnonymousParDo2+Count.PerElement/Init+Count.PerElement/Count.PerKey/GroupByKey+Count.PerElement/Count.PerKey/Combine.GroupedValues/Partial+Count.PerElement/Count.PerKey/GroupByKey/Reify+Count.PerElement/Count.PerKey/GroupByKey/Write
+2016-12-19T23:59:06.297Z: Detail:  (fb8b0023e99aa9b8): Workers have started successfully.
+2016-12-19T23:59:16.555Z: Error:   (b73447de5cf72bb4): java.lang.ArrayIndexOutOfBoundsException: 1
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:194)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:20.608Z: Error:   (b73447de5cf72931): java.lang.NumberFormatException: For input string: "2016"921093538""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:580)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:197)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:26.735Z: Error:   (b73447de5cf726ae): java.lang.ArrayIndexOutOfBoundsException: 1
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:194)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:39.731Z: Error:   (b73447de5cf72e60): java.lang.NumberFormatException: For input string: "2016"921093538""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:580)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:197)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:39.760Z: Basic:  S03: (9896410178b005e7): Executing operation TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Close
+2016-12-19T23:59:39.796Z: Basic:  S04: (ca83f4c4c1df677d): Executing operation TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/DataflowPipelineRunner.GroupByWindowHashAsKeyAndWindowAsSortKey/DataflowPipelineRunner.GroupByKeyAndSortValuesOnly/Read+TextIO.Write/Write/DataflowPipelineRunner.BatchWrite/View.AsSingleton/BatchViewAsSingleton/ParDo(IsmRecordForSingularValuePerWindow)
+2016-12-19T23:59:43.318Z: Error:   (b73447de5cf72bdd): java.lang.NumberFormatException: For input string: "2016"921093538""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:580)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:197)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:51.225Z: Error:   (b73447de5cf722ca): java.lang.NumberFormatException: For input string: "2016"921093538""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:580)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at citiboard.batch.StartStation.lambda$0(StartStation.java:197)
+	at com.google.cloud.dataflow.sdk.transforms.MapElements$1.processElement(MapElements.java:109)
+
+2016-12-19T23:59:51.276Z: Error:   (df694be4bbd5b613): Workflow failed. Causes: (3bd8942ee497ffb7): S07:TextIO.Read/Read+MapElements/Map+AnonymousParDo+AnonymousParDo2+Count.PerElement/Init+Count.PerElement/Count.PerKey/GroupByKey+Count.PerElement/Count.PerKey/Combine.GroupedValues/Partial+Count.PerElement/Count.PerKey/GroupByKey/Reify+Count.PerElement/Count.PerKey/GroupByKey/Write failed.
+2016-12-19T23:59:51.331Z: Detail:  (a45b4f696600847b): Cleaning up.
+2016-12-19T23:59:51.463Z: Basic:  (a45b4f696600889c): Stopping worker pool...
+2016-12-20T00:01:01.470Z: Basic:  (a45b4f69660087e3): Worker pool stopped.
+Dec 19, 2016 7:01:07 PM com.google.cloud.dataflow.sdk.runners.BlockingDataflowPipelineRunner run
+INFO: Job finished with status FAILED
+Exception in thread "main" com.google.cloud.dataflow.sdk.runners.DataflowJobExecutionException: Job 2016-12-19_15_58_13-11223015565032425332 failed with status FAILED
+	at com.google.cloud.dataflow.sdk.runners.BlockingDataflowPipelineRunner.run(BlockingDataflowPipelineRunner.java:158)
+	at com.google.cloud.dataflow.sdk.runners.BlockingDataflowPipelineRunner.run(BlockingDataflowPipelineRunner.java:56)
+	at com.google.cloud.dataflow.sdk.Pipeline.run(Pipeline.java:181)
+	at citiboard.batch.StartStation.main(StartStation.java:257)
