@@ -18,9 +18,7 @@ import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.SimpleFunction;
 import com.google.cloud.dataflow.sdk.transforms.Sum;
-
 import com.google.cloud.dataflow.sdk.transforms.View;
-
 import com.google.cloud.dataflow.sdk.transforms.DoFn.ProcessContext;
 import com.google.cloud.dataflow.sdk.util.gcsfs.GcsPath;
 import com.google.cloud.dataflow.sdk.values.KV;
@@ -38,7 +36,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.avro.reflect.Nullable;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
  
 
 
@@ -315,18 +314,22 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
-		PCollection<Route> filtered = routes.apply(ParDo.withSideInputs(user_input).of(new DoFn<Route, Route>(){
+		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
+			private static final Logger LOG = LoggerFactory.getLogger(filterStations.class);
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
-
+				Double thisStart = curr.startTime;
 				Map<String, String> lengthCutOff = c.sideInput(user_input);
 				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
 				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
 
 				String station = lengthCutOff.get("startStation");
-				if (start <= curr.startTime && curr.startTime <= end) {
-					if(curr.startStation == station){
+				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
+				if ((start < thisStart) && (thisStart < end)) {
+					LOG.debug("TRUE");
+					if(curr.startStation.equals(station)){
+						LOG.debug("OUTPUT");
 						c.output(curr);
 					}
 				}
