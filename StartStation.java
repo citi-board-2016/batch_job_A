@@ -174,24 +174,26 @@ public class StartStation{
 		
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
 		
-		PCollection<String> words = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, String>() {
+		PCollection<KV<String, String> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, String>() {
 			     @Override
 			     public void processElement(ProcessContext c) {
 			       for (String word : c.element().split(",")) {
-				 if (!word.isEmpty()) {
-				   c.output(word);
-				 }
+				 KV<String, String> station = KV.of("startStation", word);
+			
+				 
+				   c.output(station);
+				 
 			       }
 			     }
 			  }))
 		
-		PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
+		/*PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
 		   
-		    String[] parts = line.split(",");
+		    //String[] parts = line.split(",");
 		    //in.startStation = parts[0];
 
-			/*KV<String, String> station = KV.of("startStation", parts[0]);
-			return(station);*/
+			KV<String, String> station = KV.of("startStation", parts[0]);
+			return(station);
 			KV<String, String> start = KV.of("timeStart", parts[1]);
 			return(start);/*
 			KV<String, String> end = KV.of("timeEnd", parts[2]);
@@ -200,7 +202,7 @@ public class StartStation{
 		    //in.timeStart = Integer.parseInt(parts[1]);
 		    //in.timeEnd = Integer.parseInt(parts[2]);
 		    
-		}).withOutputType(new TypeDescriptor<KV<String, String>>() {}));
+		/*}).withOutputType(new TypeDescriptor<KV<String, String>>() {}));*/
 		
 		
 		PCollectionView<Map<String, String>> user_input = input.apply(View.<String, String>asMap());
