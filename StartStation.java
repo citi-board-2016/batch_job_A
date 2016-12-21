@@ -164,6 +164,7 @@ public class StartStation{
 		///////////////////////////////////////////////////////////
 		
 		in = new Input();
+		System.out.println("in: " + in);
 		//input txt will have a single line in the form:
 		//"start station id","start time","end time"
 		//separated only by commas
@@ -171,17 +172,27 @@ public class StartStation{
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.txt"));
 		
 		PCollection<Input> input = lines.apply(ParDo.named("ParseInput").of(new DoFn<String, Input>(){
-			
-				private final Aggregator<Long, Long> emptyLines =
-			        createAggregator("emptyLines", new Sum.SumLongFn());
+			     @Override
+			     public void processElement(ProcessContext c) {
+				     System.out.println(c.element());
+				     String word = c.element().split("[^a-zA-Z']+")
+					System.out.println(word);
+				     in.startStation = word[0];
+				    in.timeStart = Integer.parseInt(word[1]);
+				    in.timeEnd = Integer.parseInt(word[2]);
+				    c.output(in);
+			      
+			     }
+		
 
-			    @Override
+			    /*@Override
 			    public void processElement(ProcessContext c) {
 			      if (c.element().trim().isEmpty()) {
 			        emptyLines.addValue(1L);
 			      }
 
 			      // Split the line into words.
+				System.out.println(c.element());
 			      String[] words = c.element().split(",");
 			      
 				    in.startStation = words[0];
@@ -191,7 +202,7 @@ public class StartStation{
 			      
 
 			      
-			    }
+			    }*/
 			  }));
 				
 				
