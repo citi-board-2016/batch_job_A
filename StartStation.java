@@ -174,6 +174,17 @@ public class StartStation{
 		
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
 		
+		PCollection<String> words = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, String>() {
+			     @Override
+			     public void processElement(ProcessContext c) {
+			       for (String word : c.element().split(",")) {
+				 if (!word.isEmpty()) {
+				   c.output(word);
+				 }
+			       }
+			     }
+			  }))
+		
 		PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
 		   
 		    String[] parts = line.split(",");
