@@ -175,6 +175,8 @@ public class StartStation{
 		   
 		    String[] parts = line.split(",");
 		    in.startStation = parts[0];
+		    in.timeStart = Integer.parseInt(parts[1]);
+		    in.timeEnd = Integer.parseInt(parts[2]);
 		    
 		    
 		    
