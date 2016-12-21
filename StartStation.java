@@ -10,6 +10,7 @@ import com.google.cloud.dataflow.sdk.options.Description;
 import com.google.cloud.dataflow.sdk.options.PipelineOptions;
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 import com.google.cloud.dataflow.sdk.transforms.Aggregator;
+import com.google.cloud.dataflow.sdk.transforms.Combine;
 import com.google.cloud.dataflow.sdk.transforms.Count;
 import com.google.cloud.dataflow.sdk.transforms.DoFn;
 import com.google.cloud.dataflow.sdk.transforms.MapElements;
@@ -174,18 +175,32 @@ public class StartStation{
 		
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
 		
-		PCollection<KV<String, String> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, String>() {
+		PCollection<KV<String, String>> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, KV<String, String>>() {
 			     @Override
 			     public void processElement(ProcessContext c) {
+			    	 int i = 0;
+			    	 KV<String, String> station = KV.of("no", "0");
 			       for (String word : c.element().split(",")) {
-				 KV<String, String> station = KV.of("startStation", word);
-			
-				 
-				   c.output(station);
+			    	   if (i == 0){
+			    		   station = KV.of("startStation", word);
+			    	   }
+			    	   else if(i == 1){
+			    		   station = KV.of("timeStart", word);
+			    	   }
+			    	   else if(i == 2){
+			    		   station = KV.of("timeEnd", word);
+			    	   }
+			    	   else{
+			    		   String key = "" + i;
+			    		   station = KV.of(key, word);
+			    	   }
+			    	   i++;
+			    	   
+					c.output(station);
 				 
 			       }
 			     }
-			  }))
+			  }));
 		
 		/*PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
 		   
@@ -306,8 +321,8 @@ public class StartStation{
 				// In our DoFn, access the side input.
 
 				Map<String, String> lengthCutOff = c.sideInput(user_input);
-				int start = Integer.parseInt(lengthCutOff.get("timeStart"));
-				int end = Integer.parseInt(lengthCutOff.get("timeEnd"));
+				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
+				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
 
 				String station = lengthCutOff.get("startStation");
 				if (start <= curr.startTime && curr.startTime <= end) {
