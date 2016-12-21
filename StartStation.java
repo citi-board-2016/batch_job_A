@@ -171,22 +171,27 @@ public class StartStation{
 		
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
 		
-		PCollection<Input> input = lines.apply(MapElements.via((String line) -> {
+		PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
 		   
 		    String[] parts = line.split(",");
-		    in.startStation = parts[0];
-		    in.timeStart = Integer.parseInt(parts[1]);
-		    in.timeEnd = Integer.parseInt(parts[2]);
+		    //in.startStation = parts[0];
+			KV<String, String> station = of("startStation", parts[0]);
+			c.output(station);
+			KV<String, String> start = of("timeStart", parts[1]);
+			c.output(start);
+			KV<String, String> end = of("timeEnd", parts[2]);
+			c.output(station);
+		    //in.timeStart = Integer.parseInt(parts[1]);
+		    //in.timeEnd = Integer.parseInt(parts[2]);
 		    
-		    
-		    
-		    
-            
-            
-            
-		    
-		    return in;
-		}).withOutputType(new TypeDescriptor<Input>() {}));/*ParDo.named("ParseInput").of(new DoFn<String, Input>(){
+		}).withOutputType(new TypeDescriptor<KV<String, String>>() {}));
+		
+		
+		PCollectionView<Map<String, String>> user_input = input.apply(View.<String, String>asMap());
+		
+		
+
+		/*ParDo.named("ParseInput").of(new DoFn<String, Input>(){
 			     @Override
 			     public void processElement(ProcessContext c) {
 				     System.out.println("ELEMENT: " + c.element());
@@ -237,13 +242,13 @@ public class StartStation{
 		    
 		    
 		    
-            String[] commas = parts[0].split("\"");
-            String datetimehash = "0";
-            
-            if(!isNumeric(commas[1])){
-            	
-            }
-            else{	
+		    String[] commas = parts[0].split("\"");
+		    String datetimehash = "0";
+
+		    if(!isNumeric(commas[1])){
+
+		    }
+		    else{	
                 
         	    String[] datetime = parts[1].split("\"");
         	    datetime = datetime[1].split(" ");  	    
@@ -255,7 +260,7 @@ public class StartStation{
         	    String[] time = datetime[1].split(":");
         	    datetimehash = date[2] + month + date[1] + time[0] + time[1] + time[2];
 
-            }
+            	}
 		    
 		    
 		    
@@ -267,7 +272,7 @@ public class StartStation{
 		    return route;
 		}).withOutputType(new TypeDescriptor<Route>() {}));
 
-
+		
 		/////////////////////////////			/////
 		// What are we inputting and outputting?? ///
 		//////////////////////////////			/////
@@ -277,13 +282,14 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
-		PCollection<Route> filtered = routes.apply(ParDo.of(new DoFn<Route, Route>(){
+		PCollection<Route> filtered = routes.apply(ParDo.withSideInputs(user_input).of(new DoFn<Route, Route>(){
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
-				int start = in.timeStart;
-				int end = in.timeEnd;
-				String station = in.startStation;
+				Map lengthCutOff = c.sideInput(user_input);
+				int start = lengthCutOff.get("timeStart");
+				int end = lengthCutOff.get("timeEnd");
+				String station = lengthCutOff.get("startStation");
 				if (start <= curr.startTime && curr.startTime <= end) {
 					if(curr.startStation == station){
 						c.output(curr);
