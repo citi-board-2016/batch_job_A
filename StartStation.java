@@ -171,7 +171,20 @@ public class StartStation{
 		
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.txt"));
 		
-		PCollection<Input> input = lines.apply(ParDo.named("ParseInput").of(new DoFn<String, Input>(){
+		PCollection<Input> input = lines.apply(MapElements.via((String line) -> {
+		   
+		    String[] parts = line.split(",");
+		    in.startStation = parts[0];
+		    
+		    
+		    
+		    
+            
+            
+            
+		    
+		    return in;
+		}).withOutputType(new TypeDescriptor<Input>() {}));/*ParDo.named("ParseInput").of(new DoFn<String, Input>(){
 			     @Override
 			     public void processElement(ProcessContext c) {
 				     System.out.println("ELEMENT: " + c.element());
