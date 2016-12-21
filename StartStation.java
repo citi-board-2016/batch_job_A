@@ -169,7 +169,7 @@ public class StartStation{
 		//"start station id","start time","end time"
 		//separated only by commas
 		
-		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.txt"));
+		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
 		
 		PCollection<Input> input = lines.apply(MapElements.via((String line) -> {
 		   
