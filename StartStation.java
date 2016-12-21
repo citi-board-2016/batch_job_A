@@ -17,6 +17,9 @@ import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.SimpleFunction;
 import com.google.cloud.dataflow.sdk.transforms.Sum;
+
+import com.google.cloud.dataflow.sdk.transforms.View;
+
 import com.google.cloud.dataflow.sdk.transforms.DoFn.ProcessContext;
 import com.google.cloud.dataflow.sdk.util.gcsfs.GcsPath;
 import com.google.cloud.dataflow.sdk.values.KV;
@@ -175,12 +178,14 @@ public class StartStation{
 		   
 		    String[] parts = line.split(",");
 		    //in.startStation = parts[0];
-			KV<String, String> station = of("startStation", parts[0]);
-			c.output(station);
-			KV<String, String> start = of("timeStart", parts[1]);
-			c.output(start);
-			KV<String, String> end = of("timeEnd", parts[2]);
-			c.output(station);
+
+			/*KV<String, String> station = KV.of("startStation", parts[0]);
+			return(station);*/
+			KV<String, String> start = KV.of("timeStart", parts[1]);
+			return(start);/*
+			KV<String, String> end = KV.of("timeEnd", parts[2]);
+			return(station);*/
+
 		    //in.timeStart = Integer.parseInt(parts[1]);
 		    //in.timeEnd = Integer.parseInt(parts[2]);
 		    
@@ -286,9 +291,11 @@ public class StartStation{
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
-				Map lengthCutOff = c.sideInput(user_input);
-				int start = lengthCutOff.get("timeStart");
-				int end = lengthCutOff.get("timeEnd");
+
+				Map<String, String> lengthCutOff = c.sideInput(user_input);
+				int start = Integer.parseInt(lengthCutOff.get("timeStart"));
+				int end = Integer.parseInt(lengthCutOff.get("timeEnd"));
+
 				String station = lengthCutOff.get("startStation");
 				if (start <= curr.startTime && curr.startTime <= end) {
 					if(curr.startStation == station){
