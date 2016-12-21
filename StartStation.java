@@ -174,9 +174,9 @@ public class StartStation{
 		PCollection<Input> input = lines.apply(ParDo.named("ParseInput").of(new DoFn<String, Input>(){
 			     @Override
 			     public void processElement(ProcessContext c) {
-				     System.out.println(c.element());
+				     System.out.println("ELEMENT: " + c.element());
 				     String word = c.element().split("[^a-zA-Z']+")
-					System.out.println(word);
+					System.out.println("WORD: " + word);
 				     in.startStation = word[0];
 				    in.timeStart = Integer.parseInt(word[1]);
 				    in.timeEnd = Integer.parseInt(word[2]);
