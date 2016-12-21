@@ -175,7 +175,7 @@ public class StartStation{
 			     @Override
 			     public void processElement(ProcessContext c) {
 				     System.out.println("ELEMENT: " + c.element());
-				     String word = c.element().split("[^a-zA-Z']+")
+				     String[] word = c.element().split("[^a-zA-Z']+");
 					System.out.println("WORD: " + word);
 				     in.startStation = word[0];
 				    in.timeStart = Integer.parseInt(word[1]);
