@@ -129,7 +129,7 @@ public class StartStation{
 		
 		public Route() {}
 
-	    public Route(String startStationId, String endStationId, Integer startTime, String startStationName, String endStationName) {
+	    public Route(String startStationId, String endStationId, Double startTime, String startStationName, String endStationName) {
 	      this.startStation = startStationId;
 	      this.endStation = endStationId;
 	      this.startTime = startTime;
