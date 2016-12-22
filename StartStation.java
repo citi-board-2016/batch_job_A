@@ -172,7 +172,7 @@ public class StartStation{
 		//"start station id","start time","end time"
 		//separated only by commas
 		
-		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
+		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://input-b-10001/input.csv"));
 		
 		PCollection<KV<String, String>> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, KV<String, String>>() {
 			     @Override
@@ -205,7 +205,6 @@ public class StartStation{
 		   
 		    //String[] parts = line.split(",");
 		    //in.startStation = parts[0];
-
 			KV<String, String> station = KV.of("startStation", parts[0]);
 			return(station);
 			KV<String, String> start = KV.of("timeStart", parts[1]);
@@ -236,13 +235,11 @@ public class StartStation{
 			      
 			     }
 		
-
 			    /*@Override
 			    public void processElement(ProcessContext c) {
 			      if (c.element().trim().isEmpty()) {
 			        emptyLines.addValue(1L);
 			      }
-
 			      // Split the line into words.
 				System.out.println(c.element());
 			      String[] words = c.element().split(",");
@@ -252,7 +249,6 @@ public class StartStation{
 				    in.timeEnd = Integer.parseInt(words[2]);
 				    c.output(in);
 			      
-
 			      
 			    }*/
 			 // }));
@@ -263,7 +259,7 @@ public class StartStation{
 		//final PCollectionView<Input> userInputView = 
 		
 
-		PCollection<String> data = p.apply(TextIO.Read.from("gs://test-batch001/citidata.csv"));
+		PCollection<String> data = p.apply(TextIO.Read.from("gs://input-b-10001/citidata.csv"));
 	
 			    
 		PCollection<Route> routes = data.apply(MapElements.via((String line) -> {
@@ -314,8 +310,11 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
+
+		
 		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
-			private static final Logger LOG = LoggerFactory.getLogger(filterStations.class);
+			private final Logger LOG = LoggerFactory.getLogger(StartStation.class);
+
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
@@ -324,6 +323,8 @@ public class StartStation{
 				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
 				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
 
+				//c.output(curr);
+
 				String station = lengthCutOff.get("startStation");
 				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
 				if ((start < thisStart) && (thisStart < end)) {
@@ -331,6 +332,7 @@ public class StartStation{
 					if(curr.startStation.equals(station)){
 						LOG.debug("OUTPUT");
 						c.output(curr);
+						
 					}
 				}
 			}
@@ -338,7 +340,7 @@ public class StartStation{
 
 		// reduce to just a list of end stations
 			//returns a PCollection of just end station ids
-		PCollection<String> endStations = filtered.apply(ParDo.of(new DoFn<Route, String>() {
+		PCollection<String> endStations = filtered.apply(ParDo.named("Map to end stations").of(new DoFn<Route, String>() {
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				
@@ -360,8 +362,8 @@ public class StartStation{
 
 
 		//put in output file
-		PCollection<String> out = counts.apply(ParDo.of(new FormatAsTextFn()));
-		out.apply(TextIO.Write.to("gs://test-batch001/output.txt"));   // Write output.
+		PCollection<String> out = counts.apply(ParDo.named("Write to Output").of(new FormatAsTextFn()));
+		out.apply(TextIO.Write.to("gs://final-bike-output/output.txt"));   // Write output.
 
 		// Run the pipeline.
 		p.run();
