@@ -310,9 +310,11 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
+
 		
 		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
 			private final Logger LOG = LoggerFactory.getLogger(StartStation.class);
+
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
@@ -320,7 +322,9 @@ public class StartStation{
 				Map<String, String> lengthCutOff = c.sideInput(user_input);
 				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
 				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
+
 				//c.output(curr);
+
 				String station = lengthCutOff.get("startStation");
 				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
 				if ((start < thisStart) && (thisStart < end)) {
