@@ -10,6 +10,7 @@ import com.google.cloud.dataflow.sdk.options.Description;
 import com.google.cloud.dataflow.sdk.options.PipelineOptions;
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 import com.google.cloud.dataflow.sdk.transforms.Aggregator;
+import com.google.cloud.dataflow.sdk.transforms.Combine;
 import com.google.cloud.dataflow.sdk.transforms.Count;
 import com.google.cloud.dataflow.sdk.transforms.DoFn;
 import com.google.cloud.dataflow.sdk.transforms.MapElements;
@@ -17,9 +18,7 @@ import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.SimpleFunction;
 import com.google.cloud.dataflow.sdk.transforms.Sum;
-
 import com.google.cloud.dataflow.sdk.transforms.View;
-
 import com.google.cloud.dataflow.sdk.transforms.DoFn.ProcessContext;
 import com.google.cloud.dataflow.sdk.util.gcsfs.GcsPath;
 import com.google.cloud.dataflow.sdk.values.KV;
@@ -37,7 +36,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.avro.reflect.Nullable;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
  
 
 
@@ -172,26 +172,39 @@ public class StartStation{
 		//"start station id","start time","end time"
 		//separated only by commas
 		
-		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://test-batch001/input.csv"));
+		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://input-b-10001/input.csv"));
 		
-		PCollection<KV<String, String> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, String>() {
+		PCollection<KV<String, String>> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, KV<String, String>>() {
 			     @Override
 			     public void processElement(ProcessContext c) {
+			    	 int i = 0;
+			    	 KV<String, String> station = KV.of("no", "0");
 			       for (String word : c.element().split(",")) {
-				 KV<String, String> station = KV.of("startStation", word);
-			
-				 
-				   c.output(station);
+			    	   if (i == 0){
+			    		   station = KV.of("startStation", word);
+			    	   }
+			    	   else if(i == 1){
+			    		   station = KV.of("timeStart", word);
+			    	   }
+			    	   else if(i == 2){
+			    		   station = KV.of("timeEnd", word);
+			    	   }
+			    	   else{
+			    		   String key = "" + i;
+			    		   station = KV.of(key, word);
+			    	   }
+			    	   i++;
+			    	   
+					c.output(station);
 				 
 			       }
 			     }
-			  }))
+			  }));
 		
 		/*PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
 		   
 		    //String[] parts = line.split(",");
 		    //in.startStation = parts[0];
-
 			KV<String, String> station = KV.of("startStation", parts[0]);
 			return(station);
 			KV<String, String> start = KV.of("timeStart", parts[1]);
@@ -222,13 +235,11 @@ public class StartStation{
 			      
 			     }
 		
-
 			    /*@Override
 			    public void processElement(ProcessContext c) {
 			      if (c.element().trim().isEmpty()) {
 			        emptyLines.addValue(1L);
 			      }
-
 			      // Split the line into words.
 				System.out.println(c.element());
 			      String[] words = c.element().split(",");
@@ -238,7 +249,6 @@ public class StartStation{
 				    in.timeEnd = Integer.parseInt(words[2]);
 				    c.output(in);
 			      
-
 			      
 			    }*/
 			 // }));
@@ -249,7 +259,7 @@ public class StartStation{
 		//final PCollectionView<Input> userInputView = 
 		
 
-		PCollection<String> data = p.apply(TextIO.Read.from("gs://test-batch001/citidata.csv"));
+		PCollection<String> data = p.apply(TextIO.Read.from("gs://input-b-10001/citidata.csv"));
 	
 			    
 		PCollection<Route> routes = data.apply(MapElements.via((String line) -> {
@@ -300,19 +310,25 @@ public class StartStation{
 			//returns PCollection of route object things
 		// filter based on start station
 			//returns PCollection of route object things
-		PCollection<Route> filtered = routes.apply(ParDo.withSideInputs(user_input).of(new DoFn<Route, Route>(){
+		
+		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
+			private final Logger LOG = LoggerFactory.getLogger(StartStation.class);
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				// In our DoFn, access the side input.
-
+				Double thisStart = curr.startTime;
 				Map<String, String> lengthCutOff = c.sideInput(user_input);
-				int start = Integer.parseInt(lengthCutOff.get("timeStart"));
-				int end = Integer.parseInt(lengthCutOff.get("timeEnd"));
-
+				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
+				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
+				//c.output(curr);
 				String station = lengthCutOff.get("startStation");
-				if (start <= curr.startTime && curr.startTime <= end) {
-					if(curr.startStation == station){
+				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
+				if ((start < thisStart) && (thisStart < end)) {
+					LOG.debug("TRUE");
+					if(curr.startStation.equals(station)){
+						LOG.debug("OUTPUT");
 						c.output(curr);
+						
 					}
 				}
 			}
@@ -320,7 +336,7 @@ public class StartStation{
 
 		// reduce to just a list of end stations
 			//returns a PCollection of just end station ids
-		PCollection<String> endStations = filtered.apply(ParDo.of(new DoFn<Route, String>() {
+		PCollection<String> endStations = filtered.apply(ParDo.named("Map to end stations").of(new DoFn<Route, String>() {
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				
@@ -342,8 +358,8 @@ public class StartStation{
 
 
 		//put in output file
-		PCollection<String> out = counts.apply(ParDo.of(new FormatAsTextFn()));
-		out.apply(TextIO.Write.to("gs://test-batch001/output.txt"));   // Write output.
+		PCollection<String> out = counts.apply(ParDo.named("Write to Output").of(new FormatAsTextFn()));
+		out.apply(TextIO.Write.to("gs://final-bike-output/output.txt"));   // Write output.
 
 		// Run the pipeline.
 		p.run();
