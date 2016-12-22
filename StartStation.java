@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class StartStation{
-	
+	//check if string is a number
 	public static boolean isNumeric(String str)  
 	{  
 	  try  
@@ -58,42 +58,20 @@ public class StartStation{
 	  }  
 	  return true;  
 	}
-	
+	//format output KV pairs as strings for the output text file
 	public static class FormatAsTextFn extends DoFn<KV<String, Long>, String> {
 	    @Override
 	    public void processElement(ProcessContext c) {
 	      c.output(c.element().getKey() + ": " + c.element().getValue());
 	    }
 	  }
-	
+	//holds input 
 	static Input in;
 	
-	public static class ParseInputFn extends DoFn<String, Input> {
-		
-		private final Aggregator<Long, Long> emptyLines =
-	        createAggregator("emptyLines", new Sum.SumLongFn());
-
-	    @Override
-	    public void processElement(ProcessContext c) {
-	      if (c.element().trim().isEmpty()) {
-	        emptyLines.addValue(1L);
-	      }
-
-	      // Split the line into words.
-	      String[] words = c.element().split("[^a-zA-Z']+");
-	      
-		    in.startStation = words[0];
-		    in.timeStart = Integer.parseInt(words[1]);
-		    in.timeEnd = Integer.parseInt(words[2]);
-		    c.output(in);
-	      
-
-	      
-	    }
-	  }
+	
 		
 	
-
+	//read helper
 	public static interface BatchOptions extends PipelineOptions {
 	    @Description("Path of the file to read from")
 	    //this needs to be filled in
@@ -105,9 +83,7 @@ public class StartStation{
 	    @Default.InstanceFactory(OutputFactory.class)
 	    String getOutput();
 	    void setOutput(String value);
-	    /**
-	     * Returns "gs://${YOUR_STAGING_DIRECTORY}/filtered_stations_file" as the default destination.
-	     */
+	    
 	    public static class OutputFactory implements DefaultValueFactory<String> {
 	      @Override
 	      public String create(PipelineOptions options) {
@@ -122,6 +98,7 @@ public class StartStation{
 	    }
 
 	}
+	//route class
 	@DefaultCoder(AvroCoder.class)
 	static class Route {
 		@Nullable String startStation;
@@ -141,7 +118,8 @@ public class StartStation{
 	      
 	    }
 
-	}	
+	}
+	//Input class
 	@DefaultCoder(AvroCoder.class)
 	static class Input {
 		@Nullable String startStation;
@@ -166,14 +144,14 @@ public class StartStation{
 		/////////////read and parse .csv input for demo////////////
 		///////////////////////////////////////////////////////////
 		
-		in = new Input();
-		System.out.println("in: " + in);
+		
 		//input txt will have a single line in the form:
 		//"start station id","start time","end time"
 		//separated only by commas
 		
+		//read user input file
 		PCollection<String> lines = p.apply(TextIO.Read.named("ReadLines").from("gs://input-b-10001/input.csv"));
-		
+		//extract words into KV pairs
 		PCollection<KV<String, String>> input = lines.apply(ParDo.named("ExtractWords").of(new DoFn<String, KV<String, String>>() {
 			     @Override
 			     public void processElement(ProcessContext c) {
@@ -200,99 +178,54 @@ public class StartStation{
 			       }
 			     }
 			  }));
+	
 		
-		/*PCollection<KV<String, String>> input = lines.apply(MapElements.via((String line) -> {
-		   
-		    //String[] parts = line.split(",");
-		    //in.startStation = parts[0];
-			KV<String, String> station = KV.of("startStation", parts[0]);
-			return(station);
-			KV<String, String> start = KV.of("timeStart", parts[1]);
-			return(start);/*
-			KV<String, String> end = KV.of("timeEnd", parts[2]);
-			return(station);*/
-
-		    //in.timeStart = Integer.parseInt(parts[1]);
-		    //in.timeEnd = Integer.parseInt(parts[2]);
-		    
-		/*}).withOutputType(new TypeDescriptor<KV<String, String>>() {}));*/
-		
-		
+		//as Java Map to be passed in as side input to filter
 		PCollectionView<Map<String, String>> user_input = input.apply(View.<String, String>asMap());
 		
 		
-
-		/*ParDo.named("ParseInput").of(new DoFn<String, Input>(){
-			     @Override
-			     public void processElement(ProcessContext c) {
-				     System.out.println("ELEMENT: " + c.element());
-				     String[] word = c.element().split("[^a-zA-Z']+");
-					System.out.println("WORD: " + word);
-				     in.startStation = word[0];
-				    in.timeStart = Integer.parseInt(word[1]);
-				    in.timeEnd = Integer.parseInt(word[2]);
-				    c.output(in);
-			      
-			     }
-		
-			    /*@Override
-			    public void processElement(ProcessContext c) {
-			      if (c.element().trim().isEmpty()) {
-			        emptyLines.addValue(1L);
-			      }
-			      // Split the line into words.
-				System.out.println(c.element());
-			      String[] words = c.element().split(",");
-			      
-				    in.startStation = words[0];
-				    in.timeStart = Integer.parseInt(words[1]);
-				    in.timeEnd = Integer.parseInt(words[2]);
-				    c.output(in);
-			      
-			      
-			    }*/
-			 // }));
-				
-				
-
-		//side inputs
-		//final PCollectionView<Input> userInputView = 
-		
-
+		//read data file
 		PCollection<String> data = p.apply(TextIO.Read.from("gs://input-b-10001/citidata.csv"));
 	
-			    
+		//split data file into route objects    
 		PCollection<Route> routes = data.apply(MapElements.via((String line) -> {
+		    //create new route
 		    Route route = new Route();
+		    //split input into parts by comma
 		    String[] parts = line.split(",");
+			//get start and end station
 		    route.startStation = parts[3];
 		    route.endStation = parts[7];
 		    
 		    
-		    
+		    //split date and time
 		    String[] commas = parts[0].split("\"");
 		    String datetimehash = "0";
-
+			//ensure numeric
 		    if(!isNumeric(commas[1])){
 
 		    }
 		    else{	
-                
+                	//split by double quotes
         	    String[] datetime = parts[1].split("\"");
-        	    datetime = datetime[1].split(" ");  	    
+			    //split by space to get date and time separate
+        	    datetime = datetime[1].split(" ");  
+			    //split date
         	    String[] date = datetime[0].split("/");
+			    //get month, add prefix zero if single digit
         	    String month = date[0];
         	    if(!month.equals("10") || !month.equals("11") || !month.equals("12")){
         	    	month = "0" + month;
         	    }
         	    String[] time = datetime[1].split(":");
+			    //create hash of date and time
         	    datetimehash = date[2] + month + date[1] + time[0] + time[1] + time[2];
 
             	}
 		    
 		    
 		    
-		    
+		    //add date/time hash and station names
 		    route.startTime = Double.parseDouble(datetimehash);
 		    route.startStationName = parts[4];
 		    route.endStationName = parts[8];
@@ -300,39 +233,26 @@ public class StartStation{
 		    return route;
 		}).withOutputType(new TypeDescriptor<Route>() {}));
 
-		
-		/////////////////////////////			/////
-		// What are we inputting and outputting?? ///
-		//////////////////////////////			/////
-		//p.apply(TextIO.Read.from("gs://..."));
 
-		// filter based on start time
-			//returns PCollection of route object things
-		// filter based on start station
-			//returns PCollection of route object things
-
-		
+		// filter based on start time and start location
+			//returns PCollection of route objects
 		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
 			private final Logger LOG = LoggerFactory.getLogger(StartStation.class);
 
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
-				// In our DoFn, access the side input.
+				
 				Double thisStart = curr.startTime;
-
+				//get side input
 				Map<String, String> inputStation = c.sideInput(user_input);
+				
 				Double start = Double.parseDouble(inputStation.get("timeStart"));
 				Double end = Double.parseDouble(inputStation.get("timeEnd"));
-				//c.output(curr);
 				String station = inputStation.get("startStation");
-				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
+
 				if ((start < thisStart) && (thisStart < end)) {
-					LOG.debug("TRUE");
-					//if(curr.startStation.equals(station)){
-						LOG.debug("OUTPUT");
-						c.output(curr);
-						
-					//}
+				
+					c.output(curr);
 
 				}
 			}
@@ -346,6 +266,7 @@ public class StartStation{
 				
 				c.output(curr.endStation);
 		}}));
+		
 		// count duplicates
 			//returns a PCollection of key/value pairs
 			// key: end station
@@ -353,14 +274,8 @@ public class StartStation{
 		//returns PCollection<KV<String, Long>>
 		PCollection<KV<String, Long>> counts = endStations.apply(Count.<String>perElement());
 
-		// sort the key/value collection ?
 		
 		// output this collection of key/value pairs
-		/////////////////////////////			/////
-		// What are we inputting and outputting?? ///
-		//////////////////////////////			/////
-
-
 		//put in output file
 		PCollection<String> out = counts.apply(ParDo.named("Write to Output").of(new FormatAsTextFn()));
 		out.apply(TextIO.Write.to("gs://final-bike-output/output.txt"));   // Write output.
