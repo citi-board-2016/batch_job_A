@@ -319,21 +319,21 @@ public class StartStation{
 				Route curr = c.element();
 				// In our DoFn, access the side input.
 				Double thisStart = curr.startTime;
-				Map<String, String> lengthCutOff = c.sideInput(user_input);
-				Double start = Double.parseDouble(lengthCutOff.get("timeStart"));
-				Double end = Double.parseDouble(lengthCutOff.get("timeEnd"));
 
+				Map<String, String> inputStation = c.sideInput(user_input);
+				Double start = Double.parseDouble(inputStation.get("timeStart"));
+				Double end = Double.parseDouble(inputStation.get("timeEnd"));
 				//c.output(curr);
-
-				String station = lengthCutOff.get("startStation");
+				String station = inputStation.get("startStation");
 				LOG.debug("Compare" + thisStart + " -> this " + start + " -> start " + end + " -> end");
 				if ((start < thisStart) && (thisStart < end)) {
 					LOG.debug("TRUE");
-					if(curr.startStation.equals(station)){
+					//if(curr.startStation.equals(station)){
 						LOG.debug("OUTPUT");
 						c.output(curr);
 						
-					}
+					//}
+
 				}
 			}
 		}));
