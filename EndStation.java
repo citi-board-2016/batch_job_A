@@ -122,7 +122,7 @@ public class StartStation{
 	//Input class
 	@DefaultCoder(AvroCoder.class)
 	static class Input {
-		@Nullable String startStation;
+		@Nullable String endStation;
 		@Nullable int timeStart;
 		@Nullable int timeEnd;
 		
@@ -159,7 +159,7 @@ public class StartStation{
 			    	 KV<String, String> station = KV.of("no", "0");
 			       for (String word : c.element().split(",")) {
 			    	   if (i == 0){
-			    		   station = KV.of("startStation", word);
+			    		   station = KV.of("endStation", word);
 			    	   }
 			    	   else if(i == 1){
 			    		   station = KV.of("timeStart", word);
@@ -234,7 +234,7 @@ public class StartStation{
 		}).withOutputType(new TypeDescriptor<Route>() {}));
 
 
-		// filter based on start time and start location
+		// filter based on start time and end location
 			//returns PCollection of route objects
 		PCollection<Route> filtered = routes.apply(ParDo.named("filterStations").withSideInputs(user_input).of(new DoFn<Route, Route>(){
 			private final Logger LOG = LoggerFactory.getLogger(StartStation.class);
@@ -248,7 +248,7 @@ public class StartStation{
 				
 				Double start = Double.parseDouble(inputStation.get("timeStart"));
 				Double end = Double.parseDouble(inputStation.get("timeEnd"));
-				String station = inputStation.get("startStation");
+				String station = inputStation.get("endStation");
 
 				if ((start < thisStart) && (thisStart < end)) {
 				
@@ -258,9 +258,9 @@ public class StartStation{
 			}
 		}));
 
-		// reduce to just a list of end stations
-			//returns a PCollection of just end station ids
-		PCollection<String> endStations = filtered.apply(ParDo.named("Map to end stations").of(new DoFn<Route, String>() {
+		// reduce to just a list of start stations
+			//returns a PCollection of just start station ids
+		PCollection<String> startStations = filtered.apply(ParDo.named("Map to end stations").of(new DoFn<Route, String>() {
 			public void processElement(ProcessContext c) {
 				Route curr = c.element();
 				
@@ -269,10 +269,10 @@ public class StartStation{
 		
 		// count duplicates
 			//returns a PCollection of key/value pairs
-			// key: end station
+			// key: start station
 			// value: count
 		//returns PCollection<KV<String, Long>>
-		PCollection<KV<String, Long>> counts = endStations.apply(Count.<String>perElement());
+		PCollection<KV<String, Long>> counts = startStations.apply(Count.<String>perElement());
 
 		
 		// output this collection of key/value pairs
